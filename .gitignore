@@ -1,0 +1,8 @@
+
+# Cache Files
+__pycache__
+
+# Env files
+env
+
+# Credentials
