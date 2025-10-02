@@ -36,3 +36,4 @@ SELECT
     *
 FROM
     customer_orders
+
