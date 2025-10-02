@@ -6,3 +6,7 @@ __pycache__
 env
 
 # Credentials
+.env
+
+# Dagster folder
+dagster_pipeline/dagster_home
