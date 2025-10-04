@@ -2,24 +2,27 @@ version: 2
 
 models:
   - name: stg_customers
+    description: "Customer-level staging model with one record per customer."
     columns:
       - name: customer_id
-        description: Unique id that identifies a customer.
+        description: "Unique id that identifies a customer."
         tests:
           - unique
           - not_null
 
   - name: stg_orders
+    description: "Order-level staging model containing order metadata and customer linkage."
     columns:
       - name: order_id
-        description: Unique id that identifies a order.
+        description: "Unique id that identifies an order."
         tests:
           - unique
           - not_null
 
       - name: order_status
-        description: The status of the order. It gets updated every time there's a change in order_status.
+        description: "The current status of the order; updated each time the order changes state."
         tests:
+          - not_null
           - accepted_values:
               arguments:
                 values:
@@ -33,9 +36,90 @@ models:
                   - unavailable
 
       - name: customer_id
-        description: Unique id that identifies a customer. It holds a reference to the stg_customers model.
+        description: "Foreign key to the customer placing this order."
         tests:
+          - not_null
           - relationships:
               arguments:
                 to: ref('stg_customers')
                 field: customer_id
+
+  - name: stg_order_items
+    description: "Order-item-level staging model representing each item within an order."
+    columns:
+      - name: order_item_id
+        description: "Unique id that identifies a line item within an order."
+        tests:
+          - unique
+          - not_null
+
+      - name: order_id
+        description: "Foreign key linking this item to its order."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+
+      - name: product_id
+        description: "Foreign key linking to the associated product."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+
+      - name: product_price
+        description: "Price of the product at the time of the order."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
+  - name: stg_products
+    description: "Product-level staging model containing static product attributes and pricing."
+    columns:
+      - name: product_id
+        description: "Unique id that identifies a product."
+        tests:
+          - unique
+          - not_null
+
+      - name: product_name
+        description: "Descriptive name of the product."
+        tests:
+          - not_null
+
+      - name: product_category
+        description: "Category to which the product belongs."
+        tests:
+          - not_null
+
+      - name: product_collection
+        description: "Collection or sub-group of related products."
+
+      - name: product_price
+        description: "Base price of the product listed in the catalog."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
+      - name: product_rating
+        description: "Average user rating for the product."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5
+              strictly: false
+
+      - name: product_availability
+        description: "Boolean or flag indicating if the product is available for purchase."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [true, false]
