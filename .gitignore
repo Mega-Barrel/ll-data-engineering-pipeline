@@ -10,3 +10,6 @@ env
 
 # Dagster folder
 dagster_pipeline/dagster_home
+
+# DBT
+package-lock.yml
