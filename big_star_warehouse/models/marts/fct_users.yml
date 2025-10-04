@@ -1,0 +1,77 @@
+
+version: 2
+
+models:
+  - name: fct_users
+    description: "User-level rollup: static profile + first/last order dates and lifetime order/revenue metrics."
+    tests:
+      # Grain: exactly one row per customer_id
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['customer_id']
+
+    columns:
+      - name: customer_id
+        description: "Primary key for the user."
+        tests:
+          - not_null
+          - unique
+          # Ensure all fct users map back to the staged customers table
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+
+      - name: full_name
+        description: "User full name from customers."
+        tests: []
+
+      - name: email
+        description: "User email from customers."
+        tests:
+          - not_null
+          # Basic email format check (relaxed to avoid false positives)
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+
+      - name: gender
+        description: "User gender from customers (may be null/unknown)."
+        tests: []
+
+      - name: city
+        description: "City from customers."
+        tests:
+          - not_null
+
+      - name: country
+        description: "Country from customers."
+        tests:
+          - not_null
+
+      - name: first_order_date
+        description: "Date of the user's first recorded order (null if no orders)."
+
+      - name: most_recent_order_date
+        description: "Most recent order date (null if no orders)."
+
+      - name: total_orders
+        description: "Total number of orders (including canceled)."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
+      - name: total_cancelled_orders
+        description: "Distinct canceled orders."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
+      - name: total_revenue
+        description: "Lifetime revenue excluding canceled orders."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
