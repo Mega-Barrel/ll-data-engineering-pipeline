@@ -44,5 +44,5 @@ python -m venv env && source env/bin/activate
 python setup.py
 ```
 
-👋 Built by [Saurabh Joshi](https://www.linkedin.com/in/saurabhjoshi27/)  
+👋 Built by [Saurabh Joshi](https://www.linkedin.com/in/saurabhjoshi2403/)  
 If you found this helpful, feel free to connect or ⭐ the repo!
